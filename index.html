@@ -147,14 +147,6 @@
   .toast.err{background:#b91c1c;}
   .toast.warn{background:#b45309;}
 
-  .modal{position:fixed;inset:0;background:rgba(15,23,42,.6);display:none;
-    align-items:center;justify-content:center;z-index:500;padding:20px;}
-  .modal.show{display:flex;}
-  .modal-box{background:#fff;border-radius:16px;padding:24px;max-width:720px;width:100%;
-    max-height:88vh;overflow:auto;}
-  .modal-box h3{margin:0 0 12px;}
-  pre{background:#0f172a;color:#a5f3fc;padding:16px;border-radius:10px;overflow:auto;
-    font-size:12.5px;line-height:1.6;}
   .hint{font-size:12.5px;color:var(--muted);line-height:1.7;}
   .empty-state{text-align:center;padding:40px 20px;color:var(--muted);}
   .empty-state div{font-size:38px;margin-bottom:10px;}
@@ -164,13 +156,9 @@
     nav.tabs,header .stats,.toolbar,.no-print{display:none!important;}
     body{background:#fff;} .card{box-shadow:none;border:none;}
   }
-  .sync-banner{
-    background:#f0fdfa;border:1px solid #99f6e4;border-radius:10px;padding:14px;margin-bottom:16px;
-  }
-  .sync-banner p{margin:0 0 6px;font-size:13px;color:#0f766e;font-weight:700;}
-  .sync-banner code{
-    font-size:11.5px;color:#475569;word-break:break-all;background:#fff;
-    padding:2px 6px;border-radius:5px;border:1px solid #cbd5e1;
+  .status-dot{
+    display:inline-block;width:8px;height:8px;border-radius:50%;
+    background:#22c55e;margin-right:6px;box-shadow:0 0 0 3px rgba(34,197,94,.2);
   }
 </style>
 </head>
@@ -178,7 +166,7 @@
 
 <header>
   <h1>🏥 Monitoring Supervisi Apoteker</h1>
-  <p>Input jadwal → rekap otomatis ruangan yang sudah &amp; belum disupervisi</p>
+  <p><span class="status-dot"></span>Auto-sync Google Sheets aktif — data langsung tersimpan otomatis</p>
   <div class="stats">
     <div class="stat"><b id="stApoteker">0</b><span>Apoteker</span></div>
     <div class="stat"><b id="stRuangan">0</b><span>Ruangan</span></div>
@@ -305,22 +293,6 @@
 
   <!-- ================= PENGATURAN ================= -->
   <section id="view-pengaturan" class="view">
-    <div class="card">
-      <h2>🔗 Sinkronisasi Google Sheets</h2>
-      <div class="sync-banner">
-        <p>✅ Terhubung permanen ke Google Sheets</p>
-        <code id="endpointText"></code>
-      </div>
-      <label style="display:flex;align-items:center;gap:8px;text-transform:none;font-size:13px;">
-        <input type="checkbox" id="autoSync" style="width:auto" checked>
-        Otomatis kirim ke Google Sheets setiap kali menyimpan jadwal
-      </label>
-      <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
-        <button class="btn" onclick="syncAll()">☁️ Kirim Semua Data Sekarang</button>
-        <button class="btn ghost" onclick="openModal()">📖 Cara Setup Apps Script</button>
-      </div>
-    </div>
-
     <div class="row-2">
       <div class="card">
         <h2>👥 Daftar Apoteker <span class="badge" id="badgeApoteker">0</span></h2>
@@ -349,66 +321,25 @@
         <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
         <button class="btn danger" onclick="resetAll()">🗑️ Reset Semua Data</button>
       </div>
-      <p class="hint" style="margin-top:12px;">Data tersimpan otomatis di browser (localStorage) dan dikirim ke Google Sheets.</p>
+      <p class="hint" style="margin-top:12px;">
+        <span class="status-dot"></span>
+        Setiap jadwal yang disimpan <b>otomatis terkirim ke Google Sheets</b> tanpa perlu konfigurasi tambahan.
+        Data juga tersimpan di browser sebagai backup lokal.
+      </p>
     </div>
   </section>
 
 </main>
 
-<!-- MODAL CARA SETUP -->
-<div class="modal" id="modal">
-  <div class="modal-box">
-    <h3>📖 Cara Setup Google Apps Script</h3>
-    <ol class="hint" style="padding-left:18px;">
-      <li>Buka Google Sheet Anda → <b>Extensions → Apps Script</b>.</li>
-      <li>Hapus kode default, paste kode di bawah ini.</li>
-      <li>Klik <b>Deploy → New deployment → Web app</b>.</li>
-      <li>Set <b>Execute as: Me</b>, <b>Who has access: Anyone</b>.</li>
-      <li>Klik Deploy, copy URL yang berakhiran <code>/exec</code>.</li>
-      <li>Ganti konstanta <code>SHEETS_URL</code> di HTML ini dengan URL tersebut.</li>
-    </ol>
-    <pre id="scriptCode">function doPost(e) {
-  const SHEET_NAME = 'Riwayat';
-  const ss = SpreadsheetApp.openById('19ghgZqbjtmV4oyjXoMNmy4K81TJti9jN1tF3DN5xd3k');
-  let sh = ss.getSheetByName(SHEET_NAME);
-  if (!sh) sh = ss.insertSheet(SHEET_NAME);
-
-  const data = JSON.parse(e.postData.contents);
-
-  if (data.action === 'syncAll') {
-    sh.clear();
-    sh.appendRow(['No','Nama Apoteker','Minggu','Ruangan','Tanggal','Waktu Input']);
-    data.rows.forEach(function(r, i){
-      sh.appendRow([i+1, r.nama, r.minggu, r.ruangan, r.tanggal || '-', r.createdAt]);
-    });
-  } else {
-    if (sh.getLastRow() === 0) {
-      sh.appendRow(['No','Nama Apoteker','Minggu','Ruangan','Tanggal','Waktu Input']);
-    }
-    sh.appendRow([sh.getLastRow(), data.nama, data.minggu, data.ruangan, data.tanggal || '-', data.createdAt]);
-  }
-
-  sh.setColumnWidth(2, 180);
-  sh.setColumnWidth(4, 180);
-
-  return ContentService
-    .createTextOutput(JSON.stringify({status:'ok'}))
-    .setMimeType(ContentService.MimeType.JSON);
-}</pre>
-    <div style="margin-top:16px;text-align:right;">
-      <button class="btn" onclick="closeModal()">Tutup</button>
-    </div>
-  </div>
-</div>
-
 <div class="toast" id="toast"></div>
 
 <script>
 /* =========================================================
-   KONFIGURASI PERMANEN — URL SHEETS SUDAH DITANAM
+   KONFIGURASI PERMANEN — AUTO-SYNC TANPA SETTING
 ========================================================= */
 const STORAGE_KEY = 'supervisiApoteker_v1';
-const SPREADSHEET_ID = '19ghgZqbjtmV4oyjXoMNmy4K81TJti9jN1tF3DN5xd3k';
+
+// URL Google Apps Script — PERMANEN (jangan diubah)
 const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzjCxUFtNaHw3HhrCIsxbN95n06hgS3aXHw0wtdpxeI2NSWjpzaif18-N7hLM5ID7c3Rw/exec';
 
 const DEFAULT_APOTEKERS = [
@@ -425,9 +356,7 @@ const DEFAULT_ROOMS = [
 let state = {
   apotekers: [],
   rooms: [],
-  schedules: [],
-  sheetsUrl: SHEETS_URL,   // permanen
-  autoSync: true           // default ON
+  schedules: []
 };
 
 /* =========================================================
@@ -461,8 +390,7 @@ function save(){
   localStorage.setItem(STORAGE_KEY, JSON.stringify({
     apotekers: state.apotekers,
     rooms: state.rooms,
-    schedules: state.schedules,
-    autoSync: state.autoSync
+    schedules: state.schedules
   }));
 }
 function load(){
@@ -473,12 +401,8 @@ function load(){
       state.apotekers = d.apotekers || [];
       state.rooms = d.rooms || [];
       state.schedules = d.schedules || [];
-      state.autoSync = d.autoSync !== undefined ? !!d.autoSync : true;
     }
   }catch(e){ console.warn('Gagal memuat data', e); }
-
-  // URL selalu dari konstanta (tidak bisa berubah)
-  state.sheetsUrl = SHEETS_URL;
 
   if(!state.apotekers.length) state.apotekers = [...DEFAULT_APOTEKERS];
   if(!state.rooms.length) state.rooms = [...DEFAULT_ROOMS];
@@ -546,7 +470,7 @@ function renderStats(){
 }
 
 /* =========================================================
-   INPUT JADWAL
+   INPUT JADWAL — OTOMATIS KIRIM
 ========================================================= */
 function clearForm(){
   document.getElementById('inNama').value = '';
@@ -606,13 +530,12 @@ async function addSchedule(){
   renderAll();
   clearForm();
 
-  if(state.autoSync){
-    const ok = await sendToSheets(record);
-    toast(ok ? `✅ Tersimpan & terkirim ke Sheets: ${nama} → ${ruangan}`
-             : `✅ Tersimpan lokal (gagal kirim ke Sheets)`,
-          ok ? 'ok' : 'warn');
+  // ✅ OTOMATIS KIRIM KE GOOGLE SHEETS (tanpa toggle, tanpa setting)
+  const ok = await sendToSheets(record);
+  if(ok){
+    toast(`✅ Tersimpan & terkirim: ${nama} → ${ruangan}`, 'ok');
   } else {
-    toast(`✅ Tersimpan: ${nama} → ${ruangan} (${minggu})`, 'ok');
+    toast(`✅ Tersimpan lokal — gagal kirim ke Sheets (cek koneksi)`, 'warn');
   }
 }
 
@@ -799,7 +722,7 @@ function delRuangan(nama){
 }
 
 /* =========================================================
-   GOOGLE SHEETS — URL PERMANEN
+   GOOGLE SHEETS — AUTO-SYNC TANPA UI
 ========================================================= */
 async function sendToSheets(record){
   try{
@@ -811,26 +734,8 @@ async function sendToSheets(record){
     });
     return true;
   }catch(e){
-    console.error(e);
+    console.error('Kirim ke Sheets gagal:', e);
     return false;
-  }
-}
-
-async function syncAll(){
-  if(!state.schedules.length){ toast('Belum ada data untuk dikirim', 'warn'); return; }
-  if(!confirm(`Kirim ${state.schedules.length} data jadwal ke Google Sheets? (data lama di sheet akan ditimpa)`)) return;
-
-  toast('⏳ Mengirim data...', 'warn');
-  try{
-    await fetch(SHEETS_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: {'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify({action:'syncAll', rows: state.schedules})
-    });
-    toast('✅ Data terkirim ke Google Sheets', 'ok');
-  }catch(e){
-    toast('❌ Gagal mengirim. Cek koneksi.', 'err');
   }
 }
 
@@ -855,8 +760,7 @@ function exportJSON(){
   const data = {
     apotekers: state.apotekers,
     rooms: state.rooms,
-    schedules: state.schedules,
-    autoSync: state.autoSync
+    schedules: state.schedules
   };
   downloadFile(JSON.stringify(data, null, 2), `backup-supervisi-${Date.now()}.json`, 'application/json');
   toast('⬇️ Backup diunduh', 'ok');
@@ -873,7 +777,6 @@ function importJSON(ev){
       state.apotekers = d.apotekers || state.apotekers;
       state.rooms = d.rooms || state.rooms;
       state.schedules = d.schedules || [];
-      state.autoSync = d.autoSync !== undefined ? !!d.autoSync : true;
       save(); renderAll();
       toast('✅ Data berhasil direstore', 'ok');
     }catch(err){
@@ -902,15 +805,6 @@ function resetAll(){
 }
 
 /* =========================================================
-   MODAL
-========================================================= */
-function openModal(){ document.getElementById('modal').classList.add('show'); }
-function closeModal(){ document.getElementById('modal').classList.remove('show'); }
-document.getElementById('modal').addEventListener('click', e => {
-  if(e.target.id === 'modal') closeModal();
-});
-
-/* =========================================================
    RENDER SEMUA
 ========================================================= */
 function renderAll(){
@@ -926,19 +820,6 @@ function renderAll(){
 ========================================================= */
 (function init(){
   load();
-
-  // Tampilkan URL permanen di banner
-  document.getElementById('endpointText').textContent = SHEETS_URL;
-
-  // Checkbox auto-sync
-  const cb = document.getElementById('autoSync');
-  cb.checked = state.autoSync;
-  cb.addEventListener('change', () => {
-    state.autoSync = cb.checked;
-    save();
-    toast(state.autoSync ? '🔄 Auto-sync AKTIF' : '⏸️ Auto-sync NONAKTIF', 'ok');
-  });
-
   renderAll();
 
   ['inNama','inRuangan'].forEach(id => {
