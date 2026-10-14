@@ -29,7 +29,6 @@
     color:#fff;padding:22px 26px 18px;
   }
   header h1{margin:0 0 4px;font-size:21px;letter-spacing:.3px;}
-  header p{margin:0;opacity:.85;font-size:13px;}
   .stats{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;}
   .stat{
     background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);
@@ -154,17 +153,12 @@
     nav.tabs,header .stats,.toolbar,.no-print{display:none!important;}
     body{background:#fff;} .card{box-shadow:none;border:none;}
   }
-  .status-dot{
-    display:inline-block;width:8px;height:8px;border-radius:50%;
-    background:#22c55e;margin-right:6px;box-shadow:0 0 0 3px rgba(34,197,94,.2);
-  }
 </style>
 </head>
 <body>
 
 <header>
   <h1>🏥 Monitoring Supervisi Apoteker</h1>
-  <p><span class="status-dot"></span>Auto-sync Google Sheets aktif — data langsung tersimpan otomatis</p>
   <div class="stats">
     <div class="stat"><b id="stApoteker">0</b><span>Apoteker</span></div>
     <div class="stat"><b id="stRuangan">0</b><span>Ruangan</span></div>
@@ -309,15 +303,6 @@
         </div>
         <div id="listRuangan" style="max-height:380px;overflow:auto;"></div>
       </div>
-    </div>
-
-    <div class="card">
-      <h2>ℹ️ Info Sinkronisasi</h2>
-      <p class="hint" style="margin:0;">
-        <span class="status-dot"></span>
-        Setiap jadwal yang disimpan <b>otomatis terkirim ke Google Sheets</b> tanpa perlu konfigurasi tambahan.
-        Data juga tersimpan di browser sebagai backup lokal.
-      </p>
     </div>
   </section>
 
