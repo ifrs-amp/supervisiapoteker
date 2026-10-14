@@ -81,8 +81,6 @@
   button.btn:hover{background:var(--primary-dark);transform:translateY(-1px);}
   button.btn.ghost{background:#fff;color:var(--primary);border:1.5px solid var(--primary);}
   button.btn.ghost:hover{background:var(--primary-light);}
-  button.btn.danger{background:var(--danger);}
-  button.btn.danger:hover{background:#b91c1c;}
   button.btn.sm{padding:7px 14px;font-size:12.5px;}
 
   .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px;}
@@ -314,14 +312,8 @@
     </div>
 
     <div class="card">
-      <h2>💾 Backup &amp; Reset</h2>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;">
-        <button class="btn ghost" onclick="exportJSON()">⬇️ Backup Data (JSON)</button>
-        <button class="btn ghost" onclick="document.getElementById('importFile').click()">⬆️ Restore Data</button>
-        <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
-        <button class="btn danger" onclick="resetAll()">🗑️ Reset Semua Data</button>
-      </div>
-      <p class="hint" style="margin-top:12px;">
+      <h2>ℹ️ Info Sinkronisasi</h2>
+      <p class="hint" style="margin:0;">
         <span class="status-dot"></span>
         Setiap jadwal yang disimpan <b>otomatis terkirim ke Google Sheets</b> tanpa perlu konfigurasi tambahan.
         Data juga tersimpan di browser sebagai backup lokal.
@@ -530,7 +522,7 @@ async function addSchedule(){
   renderAll();
   clearForm();
 
-  // ✅ OTOMATIS KIRIM KE GOOGLE SHEETS (tanpa toggle, tanpa setting)
+  // ✅ OTOMATIS KIRIM KE GOOGLE SHEETS
   const ok = await sendToSheets(record);
   if(ok){
     toast(`✅ Tersimpan & terkirim: ${nama} → ${ruangan}`, 'ok');
@@ -740,7 +732,7 @@ async function sendToSheets(record){
 }
 
 /* =========================================================
-   EXPORT / IMPORT
+   EXPORT CSV (masih dipakai di Riwayat)
 ========================================================= */
 function exportCSV(){
   if(!state.schedules.length){ toast('Belum ada data', 'warn'); return; }
@@ -752,56 +744,13 @@ function exportCSV(){
     .map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(','))
     .join('\n');
 
-  downloadFile('\uFEFF' + csv, `riwayat-supervisi-${Date.now()}.csv`, 'text/csv;charset=utf-8');
-  toast('⬇️ CSV diunduh', 'ok');
-}
-
-function exportJSON(){
-  const data = {
-    apotekers: state.apotekers,
-    rooms: state.rooms,
-    schedules: state.schedules
-  };
-  downloadFile(JSON.stringify(data, null, 2), `backup-supervisi-${Date.now()}.json`, 'application/json');
-  toast('⬇️ Backup diunduh', 'ok');
-}
-
-function importJSON(ev){
-  const file = ev.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    try{
-      const d = JSON.parse(e.target.result);
-      if(!confirm('Restore data akan menimpa data saat ini. Lanjutkan?')) return;
-      state.apotekers = d.apotekers || state.apotekers;
-      state.rooms = d.rooms || state.rooms;
-      state.schedules = d.schedules || [];
-      save(); renderAll();
-      toast('✅ Data berhasil direstore', 'ok');
-    }catch(err){
-      toast('❌ File tidak valid', 'err');
-    }
-  };
-  reader.readAsText(file);
-  ev.target.value = '';
-}
-
-function downloadFile(content, filename, type){
-  const blob = new Blob([content], {type});
+  const blob = new Blob(['\uFEFF' + csv], {type:'text/csv;charset=utf-8'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = filename;
+  a.download = `riwayat-supervisi-${Date.now()}.csv`;
   a.click();
   URL.revokeObjectURL(a.href);
-}
-
-function resetAll(){
-  if(!confirm('⚠️ SEMUA data jadwal akan dihapus permanen. Yakin?')) return;
-  if(!confirm('Konfirmasi terakhir: hapus semua jadwal?')) return;
-  state.schedules = [];
-  save(); renderAll();
-  toast('🗑️ Semua jadwal dihapus', 'ok');
+  toast('⬇️ CSV diunduh', 'ok');
 }
 
 /* =========================================================
