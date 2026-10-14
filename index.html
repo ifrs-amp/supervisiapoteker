@@ -80,6 +80,8 @@
   button.btn:hover{background:var(--primary-dark);transform:translateY(-1px);}
   button.btn.ghost{background:#fff;color:var(--primary);border:1.5px solid var(--primary);}
   button.btn.ghost:hover{background:var(--primary-light);}
+  button.btn.excel{background:#1d6f42;color:#fff;}
+  button.btn.excel:hover{background:#155733;}
   button.btn.sm{padding:7px 14px;font-size:12.5px;}
 
   .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px;}
@@ -226,6 +228,7 @@
           <label>Filter Apoteker</label>
           <select id="filterNama" onchange="renderRiwayat()"><option value="">Semua Apoteker</option></select>
         </div>
+        <button class="btn excel sm" onclick="exportExcelRiwayat()">📊 Export Excel</button>
         <button class="btn ghost sm" onclick="exportCSV()">⬇️ Export CSV</button>
       </div>
       <div class="table-wrap">
@@ -273,7 +276,12 @@
   <section id="view-matriks" class="view">
     <div class="card">
       <h2>Matriks Cakupan Ruangan</h2>
-      <p class="hint">Angka pada sel menunjukkan <b>minggu ke-berapa</b> apoteker tersebut bertugas di ruangan itu. Tanda <span class="dash">–</span> berarti belum pernah.</p>
+      <div class="toolbar" style="margin-top:-6px;">
+        <div style="flex:2;">
+          <p class="hint" style="margin:0;">Angka pada sel menunjukkan <b>minggu ke-berapa</b> apoteker tersebut bertugas di ruangan itu. Tanda <span class="dash">–</span> berarti belum pernah.</p>
+        </div>
+        <button class="btn excel sm" onclick="exportExcelMatriks()">📊 Export Excel</button>
+      </div>
       <div class="table-wrap">
         <table class="matrix">
           <thead id="matrixHead"></thead>
@@ -526,7 +534,7 @@ function deleteSchedule(id){
 /* =========================================================
    RIWAYAT
 ========================================================= */
-function renderRiwayat(){
+function getFilteredRiwayat(){
   const cari = document.getElementById('filterCari').value.toLowerCase();
   const fMinggu = document.getElementById('filterMinggu').value;
   const fNama = document.getElementById('filterNama').value;
@@ -537,8 +545,13 @@ function renderRiwayat(){
   if(cari) rows = rows.filter(r =>
     r.nama.toLowerCase().includes(cari) || r.ruangan.toLowerCase().includes(cari)
   );
+  return rows;
+}
 
+function renderRiwayat(){
+  const rows = getFilteredRiwayat();
   const tbody = document.getElementById('tblRiwayat');
+
   if(!rows.length){
     tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div>📋</div>Belum ada data jadwal</div></td></tr>`;
     return;
@@ -712,6 +725,141 @@ async function sendToSheets(record){
     console.error('Kirim ke Sheets gagal:', e);
     return false;
   }
+}
+
+/* =========================================================
+   EXPORT EXCEL — RIWAYAT JADWAL
+========================================================= */
+function exportExcelRiwayat(){
+  const rows = getFilteredRiwayat();
+  if(!rows.length){ toast('Belum ada data untuk diexport', 'warn'); return; }
+
+  const headers = ['No','Nama Apoteker','Minggu','Ruangan','Tanggal','Waktu Input'];
+  const data = rows.map((s, i) => [
+    i + 1,
+    s.nama,
+    s.minggu,
+    s.ruangan,
+    s.tanggal ? formatTanggal(s.tanggal) : '-',
+    s.createdAt
+  ]);
+
+  const title = 'Riwayat Jadwal Supervisi Apoteker';
+  const subtitle = `Diexport: ${nowStr()}`;
+  const html = buildExcelHTML(title, subtitle, headers, data, 'Riwayat');
+
+  downloadExcel(html, `riwayat-supervisi-${Date.now()}.xls`);
+  toast('📊 Excel Riwayat diunduh', 'ok');
+}
+
+/* =========================================================
+   EXPORT EXCEL — MATRIKS CAKUPAN
+========================================================= */
+function exportExcelMatriks(){
+  if(!state.apotekers.length || !state.rooms.length){
+    toast('Belum ada data untuk diexport', 'warn');
+    return;
+  }
+
+  // Header: Apoteker \ Ruangan | Ruangan1 | Ruangan2 | ...
+  const headers = ['Apoteker \\ Ruangan', ...state.rooms];
+
+  // Baris data
+  const data = state.apotekers.map(nama => {
+    const sched = state.schedules.filter(s => s.nama === nama);
+    const cells = state.rooms.map(ruangan => {
+      const weeks = sched.filter(s => s.ruangan === ruangan)
+                         .map(s => 'M' + s.minggu.replace('Minggu ',''))
+                         .sort();
+      return weeks.length ? weeks.join(', ') : '–';
+    });
+    return [nama, ...cells];
+  });
+
+  const title = 'Matriks Cakupan Ruangan — Supervisi Apoteker';
+  const subtitle = `Diexport: ${nowStr()} | Total: ${state.apotekers.length} apoteker × ${state.rooms.length} ruangan`;
+
+  // Bangun HTML khusus untuk matriks (cell width lebih kecil)
+  const html = buildExcelHTML(title, subtitle, headers, data, 'Matriks', true);
+
+  downloadExcel(html, `matriks-cakupan-${Date.now()}.xls`);
+  toast('📊 Excel Matriks diunduh', 'ok');
+}
+
+/* =========================================================
+   HELPER: Build HTML untuk file .xls
+========================================================= */
+function buildExcelHTML(title, subtitle, headers, data, sheetName, compact = false){
+  const escX = s => String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  const colWidth = compact ? 90 : 140;
+  const headerRow = headers.map(h =>
+    `<th style="background:#0f766e;color:#fff;font-weight:bold;border:1px solid #0b5a54;padding:6px;text-align:center;font-size:11pt;">${escX(h)}</th>`
+  ).join('');
+
+  const bodyRows = data.map((row, ri) => {
+    const bg = ri % 2 === 0 ? '#ffffff' : '#f0fdfa';
+    const cells = row.map((c, ci) => {
+      const align = ci === 0 ? 'left' : (compact ? 'center' : 'left');
+      return `<td style="border:1px solid #cbd5e1;padding:5px;background:${bg};text-align:${align};vertical-align:middle;">${escX(c)}</td>`;
+    }).join('');
+    return `<tr>${cells}</tr>`;
+  }).join('');
+
+  return `<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+      xmlns:x="urn:schemas-microsoft-com:office:excel"
+      xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta charset="UTF-8">
+<!--[if gte mso 9]>
+<xml>
+<x:ExcelWorkbook>
+<x:ExcelWorksheets>
+<x:ExcelWorksheet>
+<x:Name>${escX(sheetName)}</x:Name>
+<x:WorksheetOptions>
+<x:DisplayGridlines/>
+</x:WorksheetOptions>
+</x:ExcelWorksheet>
+</x:ExcelWorksheets>
+</x:ExcelWorkbook>
+</xml>
+<![endif]-->
+<style>
+  table{border-collapse:collapse;font-family:Calibri,Arial,sans-serif;font-size:11pt;}
+  td,th{vertical-align:middle;}
+  .title{font-size:15pt;font-weight:bold;color:#0f766e;text-align:center;}
+  .subtitle{font-size:10pt;color:#64748b;text-align:center;font-style:italic;}
+</style>
+</head>
+<body>
+<table>
+  <tr><td colspan="${headers.length}" class="title" style="padding:8px 0;">${escX(title)}</td></tr>
+  <tr><td colspan="${headers.length}" class="subtitle" style="padding:0 0 10px 0;">${escX(subtitle)}</td></tr>
+  <tr>${headerRow}</tr>
+  ${bodyRows}
+</table>
+</body>
+</html>`;
+}
+
+/* =========================================================
+   HELPER: Download file Excel
+========================================================= */
+function downloadExcel(htmlContent, filename){
+  // Tambahkan BOM + content type agar Excel buka dengan benar
+  const blob = new Blob(['\uFEFF' + htmlContent], {
+    type: 'application/vnd.ms-excel;charset=utf-8'
+  });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 }
 
 /* =========================================================
