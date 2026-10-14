@@ -149,9 +149,136 @@
   .empty-state div{font-size:38px;margin-bottom:10px;}
   .row-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
   @media(max-width:760px){.row-2{grid-template-columns:1fr;}}
+
+  /* =========================================================
+     FORM A4 — LEMBAR SUPERVISI
+  ========================================================= */
+  .form-a4{
+    width:210mm;
+    min-height:297mm;
+    padding:15mm;
+    margin:0 auto 20px;
+    background:#fff;
+    box-shadow:0 4px 20px rgba(0,0,0,.1);
+    font-family:'Times New Roman', Times, serif;
+    font-size:10pt;
+    color:#000;
+    line-height:1.25;
+    box-sizing:border-box;
+  }
+  .form-a4 .kop{width:100%;border-collapse:collapse;margin-bottom:2px;}
+  .form-a4 .kop td{vertical-align:middle;padding:0;border:none;}
+  .form-a4 .kop-logo{
+    width:22mm;text-align:center;font-size:7pt;color:#666;
+  }
+  .form-a4 .logo-placeholder{
+    width:18mm;height:18mm;border:1px dashed #999;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;margin:0 auto;
+    font-size:6.5pt;color:#999;text-align:center;line-height:1.1;
+  }
+  .form-a4 .kop-text{text-align:center;padding:0 3mm;}
+  .form-a4 .kop-text div{line-height:1.15;}
+  .form-a4 .kop-1{font-size:10.5pt;}
+  .form-a4 .kop-2{font-size:11.5pt;font-weight:bold;}
+  .form-a4 .kop-3{font-size:11.5pt;font-weight:bold;}
+  .form-a4 .kop-4{font-size:13pt;font-weight:bold;}
+  .form-a4 .kop-5{font-size:7.5pt;}
+  .form-a4 .kop-line{
+    border:none;border-top:1.5px solid #000;margin:3px 0 0 0;
+    position:relative;
+  }
+  .form-a4 .kop-line::after{
+    content:"";display:block;border-top:0.5px solid #000;margin-top:2px;
+  }
+  .form-a4 .form-title{
+    text-align:center;font-weight:bold;font-size:11pt;margin:10px 0 12px;
+    line-height:1.3;text-transform:uppercase;
+  }
+  .form-a4 .section-title{
+    font-weight:bold;font-size:10.5pt;margin:10px 0 6px;
+  }
+  .form-a4 table.identitas{
+    width:100%;border-collapse:collapse;font-size:10pt;margin-bottom:8px;
+  }
+  .form-a4 table.identitas td{
+    padding:2px 0;border:none;vertical-align:top;
+  }
+  .form-a4 table.identitas td:nth-child(1){width:32%;padding-left:8mm;}
+  .form-a4 table.identitas td:nth-child(2){width:3%;}
+  .form-a4 table.identitas td:nth-child(3){width:65%;}
+  .form-a4 input.form-input{
+    width:100%;border:none;border-bottom:1px dotted #000;background:transparent;
+    font-family:inherit;font-size:inherit;color:#000;padding:1px 3px;outline:none;
+    border-radius:0;
+  }
+  .form-a4 input.form-input:focus{
+    background:#fef3c7;box-shadow:none;border-bottom-color:#000;
+  }
+  .form-a4 input.form-input::placeholder{color:#aaa;}
+
+  .form-a4 table.tilik{
+    width:100%;border-collapse:collapse;font-size:9.5pt;margin-bottom:10px;
+  }
+  .form-a4 table.tilik th,
+  .form-a4 table.tilik td{
+    border:1px solid #000;padding:3px 5px;vertical-align:top;
+  }
+  .form-a4 table.tilik th{
+    background:#e5e5e5;text-align:center;font-weight:bold;font-size:9.5pt;
+    position:static;
+  }
+  .form-a4 table.tilik td.num{text-align:center;width:7mm;}
+  .form-a4 table.tilik td.yn{text-align:center;width:12mm;}
+  .form-a4 table.tilik td.ket{width:40mm;}
+  .form-a4 table.tilik tr.section-row td{
+    background:#e5e5e5;font-weight:bold;
+  }
+  .form-a4 table.tilik tr.section-row td.num{text-align:center;}
+
+  .form-a4 .catatan-title{
+    font-weight:bold;font-size:10.5pt;margin:10px 0 6px;
+  }
+  .form-a4 .catatan-list{
+    margin:0 0 8px 0;padding-left:18px;line-height:1.6;
+  }
+  .form-a4 .catatan-list li{margin-bottom:4px;padding-left:4px;}
+
+  .form-a4 .signature-area{
+    margin-top:20px;font-size:10pt;
+  }
+  .form-a4 .tanggal-kanan{text-align:right;margin-bottom:6px;}
+  .form-a4 .mengetahui{text-align:center;margin-bottom:4px;}
+  .form-a4 .sig-table{width:100%;border-collapse:collapse;margin-top:4px;}
+  .form-a4 .sig-table td{
+    width:50%;text-align:center;vertical-align:top;padding:0 6mm;border:none;
+  }
+  .form-a4 .sig-title{font-weight:bold;line-height:1.3;margin-bottom:22mm;}
+  .form-a4 .sig-name{border-top:none;padding-top:2px;}
+
+  /* Print — A4 */
   @media print{
-    nav.tabs,header .stats,.toolbar,.no-print{display:none!important;}
-    body{background:#fff;} .card{box-shadow:none;border:none;}
+    @page{size:A4;margin:12mm 14mm;}
+    html,body{background:#fff !important;}
+    header,nav.tabs,.toast{display:none !important;}
+    main{padding:0 !important;max-width:none !important;margin:0 !important;}
+    main > .view{display:none !important;}
+    #view-cetak{display:block !important;}
+    #view-cetak .no-print{display:none !important;}
+    .form-a4{
+      width:100% !important;
+      min-height:auto !important;
+      padding:0 !important;
+      margin:0 !important;
+      box-shadow:none !important;
+      font-size:10pt;
+    }
+    .form-a4 input.form-input{
+      background:transparent !important;
+      box-shadow:none !important;
+    }
+    .form-a4 table.tilik{page-break-inside:auto;}
+    .form-a4 table.tilik tr{page-break-inside:avoid;}
+    .form-a4 .signature-area{page-break-inside:avoid;}
   }
 </style>
 </head>
@@ -171,6 +298,7 @@
   <button class="active" data-view="input">📝 Input Jadwal</button>
   <button data-view="rekap">📊 Rekap per Apoteker</button>
   <button data-view="matriks">🔲 Matriks Cakupan</button>
+  <button data-view="cetak">🖨️ Cetak Formulir</button>
   <button data-view="pengaturan">⚙️ Pengaturan &amp; Data</button>
 </nav>
 
@@ -283,6 +411,213 @@
     </div>
   </section>
 
+  <!-- ================= CETAK FORMULIR ================= -->
+  <section id="view-cetak" class="view">
+    <div class="card no-print">
+      <h2>🖨️ Cetak Formulir Supervisi</h2>
+      <p class="hint">Isi identitas di bawah ini langsung pada form, lalu klik tombol Cetak. Hasil akan tercetak dalam format kertas <b>A4</b>.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;">
+        <button class="btn" onclick="printFormulir()">🖨️ Cetak Formulir (A4)</button>
+        <button class="btn ghost" onclick="clearCetakForm()">🧹 Bersihkan Formulir</button>
+      </div>
+      <p class="hint" style="margin-top:12px;">
+        💡 Tips: aktifkan opsi <b>"Background graphics"</b> dan ukuran kertas <b>A4</b> pada dialog print browser untuk hasil terbaik.
+      </p>
+    </div>
+
+    <div class="form-a4" id="formCetak">
+      <!-- KOP SURAT -->
+      <table class="kop">
+        <tr>
+          <td class="kop-logo"><div class="logo-placeholder">LOGO<br>KUKAR</div></td>
+          <td class="kop-text">
+            <div class="kop-1">PEMERINTAH KABUPATEN KUTAI KARTANEGARA</div>
+            <div class="kop-2">DINAS KESEHATAN</div>
+            <div class="kop-3">UNIT ORGANISASI BERSIFAT KHUSUS</div>
+            <div class="kop-4">RUMAH SAKIT UMUM DAERAH AJI MUHAMMAD PARIKESIT</div>
+            <div class="kop-5">Jalan Ratu Agung Nomor 1, Teluk Dalam, Tenggarong Seberang, Kutai Kartanegara, Kalimantan Timur 75572</div>
+            <div class="kop-5">Telepon (0541) 661015, Laman www.rsamp.kukarkab.go.id, Pos-el rsudamparikesit@yahoo.com</div>
+          </td>
+          <td class="kop-logo"><div class="logo-placeholder">LOGO<br>RS</div></td>
+        </tr>
+      </table>
+      <hr class="kop-line">
+
+      <div class="form-title">
+        LEMBAR SUPERVISI PENGELOLAAN SEDIAAN FARMASI DAN ALAT KESEHATAN<br>
+        DI RUANG OBAT / DEPO RAWAT INAP
+      </div>
+
+      <!-- A. IDENTITAS -->
+      <div class="section-title">A. IDENTITAS SUPERVISI</div>
+      <table class="identitas">
+        <tr>
+          <td>Tanggal Supervisi</td><td>:</td>
+          <td><input type="text" class="form-input" id="cetakTanggal" placeholder="..............................................................."></td>
+        </tr>
+        <tr>
+          <td>Waktu / Jam</td><td>:</td>
+          <td><input type="text" class="form-input" id="cetakWaktu" placeholder="..............................................................."></td>
+        </tr>
+        <tr>
+          <td>Nama Ruang Perawatan</td><td>:</td>
+          <td><input type="text" class="form-input" id="cetakRuang" placeholder="..............................................................."></td>
+        </tr>
+        <tr>
+          <td>Nama Apoteker</td><td>:</td>
+          <td><input type="text" class="form-input" id="cetakApoteker" placeholder="..............................................................."></td>
+        </tr>
+        <tr>
+          <td>Nama Kepala Ruangan</td><td>:</td>
+          <td><input type="text" class="form-input" id="cetakKepala" placeholder="..............................................................."></td>
+        </tr>
+      </table>
+
+      <!-- B. DAFTAR TILIK -->
+      <div class="section-title">B. DAFTAR TILIK SUPERVISI <i>(Beri tanda centang (√) pada kolom Ya/Tidak)</i></div>
+      <table class="tilik">
+        <thead>
+          <tr>
+            <th style="width:7mm;">No</th>
+            <th>Aspek yang Disupervisi</th>
+            <th style="width:12mm;">Ya</th>
+            <th style="width:12mm;">Tidak</th>
+            <th style="width:40mm;">Keterangan /<br>Catatan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="section-row">
+            <td class="num">I</td>
+            <td colspan="4">Kondisi dan Kebersihan Ruang Penyimpanan</td>
+          </tr>
+          <tr>
+            <td class="num">1</td>
+            <td>Ruang penyimpanan obat bersih, rapi, dan terhindar dari sinar matahari langsung.</td>
+            <td class="yn"></td><td class="yn"></td><td class="ket"></td>
+          </tr>
+          <tr>
+            <td class="num">2</td>
+            <td>Suhu ruangan terpantau dan dicatat setiap hari (suhu kamar: 15-25°C atau &lt;25°C).</td>
+            <td class="yn"></td><td class="yn"></td><td class="ket"></td>
+          </tr>
+          <tr>
+            <td class="num">3</td>
+            <td>Suhu lemari pendingin (kulkas) terpantau dan dicatat setiap hari (suhu: 2-8°C).</td>
+            <td class="yn"></td><td class="yn"></td><td class="ket"></td>
+          </tr>
+
+          <tr class="section-row">
+            <td class="num">II</td>
+            <td colspan="4">Penyimpanan Sediaan Farmasi, Alkes, dan BMHP, B3</td>
+          </tr>
+          <tr>
+            <td class="num">4</td>
+            <td>Penyimpanan obat dipisahkan dari barang lain dan makanan (kulkas khusus obat).</td>
+            <td class="yn"></td><td class="yn"></td><td class="ket"></td>
+          </tr>
+          <tr>
+            <td class="num">5</td>
+            <td>Obat disimpan sesuai dengan anjuran (suhu ruang, dingin/kulkas)</td>
+            <td class="yn"></td><td class="yn"></td><td class="ket"></td>
+          </tr>
+          <tr>
+            <td class="num">6</td>
+            <td>B3 disimpan dengan baik, MSDS tersedia</td>
+            <td class="yn"></td><td class="yn"></td><td class="ket"></td>
+          </tr>
+          <tr>
+            <td class="num">7</td>
+            <td>Obat yang sudah dilurutkan (rekontitusi) dituliskan BUD <i>(Beyond Use Date)</i>.</td>
+            <td class="yn"></td><td class="yn"></td><td class="ket"></td>
+          </tr>
+
+          <tr class="section-row">
+            <td class="num">III</td>
+            <td colspan="4">Penyimpanan Obat Kategori Khusus (High Alert, LASA, Narkotika)</td>
+          </tr>
+          <tr>
+            <td class="num">8</td>
+            <td>Obat High Alert dilabeli stiker "HIGH ALERT" (obat tertentu)</td>
+            <td class="yn"></td><td class="yn"></td><td class="ket"></td>
+          </tr>
+          <tr>
+            <td class="num">9</td>
+            <td>Tidak ada eletrolit pekat dalam kondisi belum di encerkan di ruang obat (KCl, Na Bicarbonat)</td>
+            <td class="yn"></td><td class="yn"></td><td class="ket"></td>
+          </tr>
+          <tr>
+            <td class="num">10</td>
+            <td>Insulin memiliki identitas pasien dan disimpan sesuai dengan tempatnya</td>
+            <td class="yn"></td><td class="yn"></td><td class="ket"></td>
+          </tr>
+          <tr>
+            <td class="num">11</td>
+            <td>Obat Narkotika dan Psikotropika di ruang obat memiliki identitas pasien</td>
+            <td class="yn"></td><td class="yn"></td><td class="ket"></td>
+          </tr>
+
+          <tr class="section-row">
+            <td class="num">IV</td>
+            <td colspan="4">Pengelolaan Obat / Troli Emergensi</td>
+          </tr>
+          <tr>
+            <td class="num">12</td>
+            <td>Troli/boks Emergensi dalam keadaan terkunci dengan segel / lock plastik yang bernomor seri, berkas lengkap (lembar pemantauan, lembar isi troli / box)</td>
+            <td class="yn"></td><td class="yn"></td><td class="ket"></td>
+          </tr>
+          <tr>
+            <td class="num">13</td>
+            <td>Daftar obat di dalam Troli Emergensi sesuai dengan standar inventaris yang ditetapkan rumah sakit.</td>
+            <td class="yn"></td><td class="yn"></td><td class="ket"></td>
+          </tr>
+          <tr>
+            <td class="num">14</td>
+            <td>Segel/kunci dibuka hanya saat keadaan darurat dan segera diisi kembali setelah digunakan (diganti segel baru).</td>
+            <td class="yn"></td><td class="yn"></td><td class="ket"></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- C. CATATAN -->
+      <div class="catatan-title">C. CATATAN TEMUAN DAN REKOMENDASI <i>(Diisi oleh Apoteker Supervisi)</i></div>
+      <div style="font-weight:bold;margin-bottom:4px;">Temuan:</div>
+      <ol class="catatan-list">
+        <li><input type="text" class="form-input" placeholder="......................................................................................................"></li>
+        <li><input type="text" class="form-input" placeholder="......................................................................................................"></li>
+        <li><input type="text" class="form-input" placeholder="......................................................................................................"></li>
+      </ol>
+
+      <div style="font-weight:bold;margin:8px 0 4px;">Tindak Lanjut / Rekomendasi:</div>
+      <ol class="catatan-list">
+        <li><input type="text" class="form-input" placeholder="......................................................................................................"></li>
+        <li><input type="text" class="form-input" placeholder="......................................................................................................"></li>
+        <li><input type="text" class="form-input" placeholder="......................................................................................................"></li>
+      </ol>
+
+      <!-- TANDA TANGAN -->
+      <div class="signature-area">
+        <div class="tanggal-kanan">
+          Tenggarong Seberang,
+          <input type="text" class="form-input" style="display:inline-block;width:35mm;border-bottom:1px dotted #000;"
+                 placeholder=".................."> 20<input type="text" class="form-input" style="display:inline-block;width:12mm;border-bottom:1px dotted #000;" placeholder="....">
+        </div>
+        <div class="mengetahui">Mengetahui,</div>
+        <table class="sig-table">
+          <tr>
+            <td>
+              <div class="sig-title">Kepala Ruang Perawatan /<br>Perwakilan</div>
+              <div class="sig-name">(..................................................)</div>
+            </td>
+            <td>
+              <div class="sig-title">Apoteker Supervisi</div>
+              <div class="sig-name">(..................................................)</div>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </section>
+
   <!-- ================= PENGATURAN ================= -->
   <section id="view-pengaturan" class="view">
     <div class="row-2">
@@ -315,8 +650,6 @@
    KONFIGURASI PERMANEN — AUTO-SYNC TANPA SETTING
 ========================================================= */
 const STORAGE_KEY = 'supervisiApoteker_v1';
-
-// URL Google Apps Script — PERMANEN (jangan diubah)
 const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzjCxUFtNaHw3HhrCIsxbN95n06hgS3aXHw0wtdpxeI2NSWjpzaif18-N7hLM5ID7c3Rw/exec';
 
 const DEFAULT_APOTEKERS = [
@@ -396,6 +729,7 @@ document.querySelectorAll('nav.tabs button').forEach(btn => {
     document.getElementById('view-' + btn.dataset.view).classList.add('active');
     if(btn.dataset.view === 'rekap') renderRekap();
     if(btn.dataset.view === 'matriks') renderMatriks();
+    window.scrollTo({top:0, behavior:'smooth'});
   });
 });
 
@@ -507,7 +841,6 @@ async function addSchedule(){
   renderAll();
   clearForm();
 
-  // ✅ OTOMATIS KIRIM KE GOOGLE SHEETS
   const ok = await sendToSheets(record);
   if(ok){
     toast(`✅ Tersimpan & terkirim: ${nama} → ${ruangan}`, 'ok');
@@ -717,7 +1050,27 @@ async function sendToSheets(record){
 }
 
 /* =========================================================
-   EXPORT CSV (masih dipakai di Riwayat)
+   CETAK FORMULIR
+========================================================= */
+function printFormulir(){
+  // Auto-isi tanggal hari ini jika kosong
+  const tglInp = document.getElementById('cetakTanggal');
+  if(!tglInp.value){
+    const d = new Date();
+    const bulan = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+    tglInp.value = `${d.getDate()} ${bulan[d.getMonth()]} ${d.getFullYear()}`;
+  }
+  setTimeout(() => window.print(), 100);
+}
+
+function clearCetakForm(){
+  if(!confirm('Bersihkan semua isian pada formulir cetak?')) return;
+  document.querySelectorAll('#formCetak input.form-input').forEach(i => i.value = '');
+  toast('🧹 Formulir dibersihkan', 'ok');
+}
+
+/* =========================================================
+   EXPORT CSV
 ========================================================= */
 function exportCSV(){
   if(!state.schedules.length){ toast('Belum ada data', 'warn'); return; }
