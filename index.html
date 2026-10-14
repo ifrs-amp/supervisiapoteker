@@ -164,6 +164,14 @@
     nav.tabs,header .stats,.toolbar,.no-print{display:none!important;}
     body{background:#fff;} .card{box-shadow:none;border:none;}
   }
+  .sync-banner{
+    background:#f0fdfa;border:1px solid #99f6e4;border-radius:10px;padding:14px;margin-bottom:16px;
+  }
+  .sync-banner p{margin:0 0 6px;font-size:13px;color:#0f766e;font-weight:700;}
+  .sync-banner code{
+    font-size:11.5px;color:#475569;word-break:break-all;background:#fff;
+    padding:2px 6px;border-radius:5px;border:1px solid #cbd5e1;
+  }
 </style>
 </head>
 <body>
@@ -299,19 +307,17 @@
   <section id="view-pengaturan" class="view">
     <div class="card">
       <h2>🔗 Sinkronisasi Google Sheets</h2>
-      <div class="form-grid">
-        <div style="grid-column:1/-1">
-          <label>URL Web App Google Apps Script</label>
-          <input id="sheetsUrl" placeholder="https://script.google.com/macros/s/AKfycb.../exec">
-        </div>
+      <div class="sync-banner">
+        <p>✅ Terhubung permanen ke Google Sheets</p>
+        <code id="endpointText"></code>
       </div>
       <label style="display:flex;align-items:center;gap:8px;text-transform:none;font-size:13px;">
-        <input type="checkbox" id="autoSync" style="width:auto"> Otomatis kirim ke Google Sheets setiap kali menyimpan jadwal
+        <input type="checkbox" id="autoSync" style="width:auto" checked>
+        Otomatis kirim ke Google Sheets setiap kali menyimpan jadwal
       </label>
       <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
-        <button class="btn" onclick="saveSheetsUrl()">💾 Simpan URL</button>
-        <button class="btn ghost" onclick="syncAll()">☁️ Kirim Semua Data Sekarang</button>
-        <button class="btn ghost" onclick="openModal()">📖 Cara Setup</button>
+        <button class="btn" onclick="syncAll()">☁️ Kirim Semua Data Sekarang</button>
+        <button class="btn ghost" onclick="openModal()">📖 Cara Setup Apps Script</button>
       </div>
     </div>
 
@@ -343,7 +349,7 @@
         <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
         <button class="btn danger" onclick="resetAll()">🗑️ Reset Semua Data</button>
       </div>
-      <p class="hint" style="margin-top:12px;">Data tersimpan otomatis di browser (localStorage). Untuk riwayat permanen, aktifkan sinkronisasi Google Sheets di atas.</p>
+      <p class="hint" style="margin-top:12px;">Data tersimpan otomatis di browser (localStorage) dan dikirim ke Google Sheets.</p>
     </div>
   </section>
 
@@ -352,18 +358,18 @@
 <!-- MODAL CARA SETUP -->
 <div class="modal" id="modal">
   <div class="modal-box">
-    <h3>📖 Cara Menghubungkan ke Google Sheets</h3>
+    <h3>📖 Cara Setup Google Apps Script</h3>
     <ol class="hint" style="padding-left:18px;">
-      <li>Buka <b>Google Sheets</b> → buat spreadsheet baru, beri nama misal <i>"Riwayat Supervisi Apoteker"</i>.</li>
-      <li>Menu <b>Extensions → Apps Script</b>.</li>
-      <li>Hapus kode yang ada, lalu <b>paste kode di bawah</b> ini.</li>
+      <li>Buka Google Sheet Anda → <b>Extensions → Apps Script</b>.</li>
+      <li>Hapus kode default, paste kode di bawah ini.</li>
       <li>Klik <b>Deploy → New deployment → Web app</b>.</li>
-      <li>Set <b>Execute as: Me</b> dan <b>Who has access: Anyone</b>. Klik Deploy &amp; izinkan akses.</li>
-      <li>Copy <b>Web app URL</b> (berakhiran <code>/exec</code>), paste ke kolom URL di halaman Pengaturan, lalu klik <b>Simpan URL</b>.</li>
+      <li>Set <b>Execute as: Me</b>, <b>Who has access: Anyone</b>.</li>
+      <li>Klik Deploy, copy URL yang berakhiran <code>/exec</code>.</li>
+      <li>Ganti konstanta <code>SHEETS_URL</code> di HTML ini dengan URL tersebut.</li>
     </ol>
     <pre id="scriptCode">function doPost(e) {
   const SHEET_NAME = 'Riwayat';
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = SpreadsheetApp.openById('19ghgZqbjtmV4oyjXoMNmy4K81TJti9jN1tF3DN5xd3k');
   let sh = ss.getSheetByName(SHEET_NAME);
   if (!sh) sh = ss.insertSheet(SHEET_NAME);
 
@@ -399,9 +405,11 @@
 
 <script>
 /* =========================================================
-   KONFIGURASI AWAL
+   KONFIGURASI PERMANEN — URL SHEETS SUDAH DITANAM
 ========================================================= */
 const STORAGE_KEY = 'supervisiApoteker_v1';
+const SPREADSHEET_ID = '19ghgZqbjtmV4oyjXoMNmy4K81TJti9jN1tF3DN5xd3k';
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzjCxUFtNaHw3HhrCIsxbN95n06hgS3aXHw0wtdpxeI2NSWjpzaif18-N7hLM5ID7c3Rw/exec';
 
 const DEFAULT_APOTEKERS = [
   'Anton','Budi','Citra','Dewi','Eka','Fajar','Gita','Hadi','Indah','Joko',
@@ -418,8 +426,8 @@ let state = {
   apotekers: [],
   rooms: [],
   schedules: [],
-  sheetsUrl: '',
-  autoSync: false
+  sheetsUrl: SHEETS_URL,   // permanen
+  autoSync: true           // default ON
 };
 
 /* =========================================================
@@ -450,7 +458,12 @@ function nowStr(){
    PENYIMPANAN
 ========================================================= */
 function save(){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({
+    apotekers: state.apotekers,
+    rooms: state.rooms,
+    schedules: state.schedules,
+    autoSync: state.autoSync
+  }));
 }
 function load(){
   try{
@@ -460,10 +473,12 @@ function load(){
       state.apotekers = d.apotekers || [];
       state.rooms = d.rooms || [];
       state.schedules = d.schedules || [];
-      state.sheetsUrl = d.sheetsUrl || '';
-      state.autoSync = !!d.autoSync;
+      state.autoSync = d.autoSync !== undefined ? !!d.autoSync : true;
     }
   }catch(e){ console.warn('Gagal memuat data', e); }
+
+  // URL selalu dari konstanta (tidak bisa berubah)
+  state.sheetsUrl = SHEETS_URL;
 
   if(!state.apotekers.length) state.apotekers = [...DEFAULT_APOTEKERS];
   if(!state.rooms.length) state.rooms = [...DEFAULT_ROOMS];
@@ -484,23 +499,20 @@ document.querySelectorAll('nav.tabs button').forEach(btn => {
 });
 
 /* =========================================================
-   RENDER DASAR (datalist, statistik)
+   RENDER MASTER
 ========================================================= */
 function renderMaster(){
-  // datalist
   document.getElementById('dlApoteker').innerHTML =
     state.apotekers.map(a => `<option value="${esc(a)}">`).join('');
   document.getElementById('dlRuangan').innerHTML =
     state.rooms.map(r => `<option value="${esc(r)}">`).join('');
 
-  // filter nama
   const sel = document.getElementById('filterNama');
   const cur = sel.value;
   sel.innerHTML = '<option value="">Semua Apoteker</option>' +
     state.apotekers.map(a => `<option value="${esc(a)}">${esc(a)}</option>`).join('');
   sel.value = cur;
 
-  // daftar kelola
   document.getElementById('badgeApoteker').textContent = state.apotekers.length;
   document.getElementById('badgeRuangan').textContent = state.rooms.length;
 
@@ -552,7 +564,6 @@ async function addSchedule(){
   if(!nama){ toast('Nama apoteker wajib diisi!', 'err'); return; }
   if(!ruangan){ toast('Ruangan wajib diisi!', 'err'); return; }
 
-  // cek duplikat persis
   const dup = state.schedules.find(s =>
     s.nama.toLowerCase() === nama.toLowerCase() &&
     s.minggu === minggu &&
@@ -563,7 +574,6 @@ async function addSchedule(){
     return;
   }
 
-  // cek bentrok: nama sama, minggu sama, ruangan beda
   const bentrok = state.schedules.find(s =>
     s.nama.toLowerCase() === nama.toLowerCase() && s.minggu === minggu
   );
@@ -574,7 +584,6 @@ async function addSchedule(){
     if(!lanjut) return;
   }
 
-  // auto-tambah ke master jika nama/ruangan baru
   if(!state.apotekers.some(a => a.toLowerCase() === nama.toLowerCase())){
     state.apotekers.push(nama);
     state.apotekers.sort((a,b)=>a.localeCompare(b,'id'));
@@ -595,12 +604,12 @@ async function addSchedule(){
   state.schedules.push(record);
   save();
   renderAll();
-
   clearForm();
 
-  if(state.autoSync && state.sheetsUrl){
+  if(state.autoSync){
     const ok = await sendToSheets(record);
-    toast(ok ? `✅ Tersimpan & terkirim ke Sheets: ${nama} → ${ruangan}` : `✅ Tersimpan lokal (gagal kirim ke Sheets)`,
+    toast(ok ? `✅ Tersimpan & terkirim ke Sheets: ${nama} → ${ruangan}`
+             : `✅ Tersimpan lokal (gagal kirim ke Sheets)`,
           ok ? 'ok' : 'warn');
   } else {
     toast(`✅ Tersimpan: ${nama} → ${ruangan} (${minggu})`, 'ok');
@@ -617,7 +626,7 @@ function deleteSchedule(id){
 }
 
 /* =========================================================
-   RENDER RIWAYAT
+   RIWAYAT
 ========================================================= */
 function renderRiwayat(){
   const cari = document.getElementById('filterCari').value.toLowerCase();
@@ -670,7 +679,6 @@ function renderRekap(){
     let sched = state.schedules.filter(s => s.nama === nama);
     if(fMinggu) sched = sched.filter(s => s.minggu === fMinggu);
 
-    // ruangan unik yang sudah disupervisi
     const sudahMap = {};
     sched.forEach(s => {
       if(!sudahMap[s.ruangan]) sudahMap[s.ruangan] = [];
@@ -791,21 +799,11 @@ function delRuangan(nama){
 }
 
 /* =========================================================
-   GOOGLE SHEETS
+   GOOGLE SHEETS — URL PERMANEN
 ========================================================= */
-function saveSheetsUrl(){
-  const url = document.getElementById('sheetsUrl').value.trim();
-  state.sheetsUrl = url;
-  state.autoSync = document.getElementById('autoSync').checked;
-  save();
-  toast(url ? '✅ URL tersimpan. Auto-sync: ' + (state.autoSync ? 'AKTIF' : 'NONAKTIF')
-            : 'URL dikosongkan', 'ok');
-}
-
 async function sendToSheets(record){
-  if(!state.sheetsUrl) return false;
   try{
-    await fetch(state.sheetsUrl, {
+    await fetch(SHEETS_URL, {
       method: 'POST',
       mode: 'no-cors',
       headers: {'Content-Type':'text/plain;charset=utf-8'},
@@ -819,13 +817,12 @@ async function sendToSheets(record){
 }
 
 async function syncAll(){
-  if(!state.sheetsUrl){ toast('Isi URL Google Apps Script dulu!', 'err'); return; }
   if(!state.schedules.length){ toast('Belum ada data untuk dikirim', 'warn'); return; }
   if(!confirm(`Kirim ${state.schedules.length} data jadwal ke Google Sheets? (data lama di sheet akan ditimpa)`)) return;
 
   toast('⏳ Mengirim data...', 'warn');
   try{
-    await fetch(state.sheetsUrl, {
+    await fetch(SHEETS_URL, {
       method: 'POST',
       mode: 'no-cors',
       headers: {'Content-Type':'text/plain;charset=utf-8'},
@@ -833,7 +830,7 @@ async function syncAll(){
     });
     toast('✅ Data terkirim ke Google Sheets', 'ok');
   }catch(e){
-    toast('❌ Gagal mengirim. Cek URL & akses.', 'err');
+    toast('❌ Gagal mengirim. Cek koneksi.', 'err');
   }
 }
 
@@ -855,7 +852,13 @@ function exportCSV(){
 }
 
 function exportJSON(){
-  downloadFile(JSON.stringify(state, null, 2), `backup-supervisi-${Date.now()}.json`, 'application/json');
+  const data = {
+    apotekers: state.apotekers,
+    rooms: state.rooms,
+    schedules: state.schedules,
+    autoSync: state.autoSync
+  };
+  downloadFile(JSON.stringify(data, null, 2), `backup-supervisi-${Date.now()}.json`, 'application/json');
   toast('⬇️ Backup diunduh', 'ok');
 }
 
@@ -870,8 +873,7 @@ function importJSON(ev){
       state.apotekers = d.apotekers || state.apotekers;
       state.rooms = d.rooms || state.rooms;
       state.schedules = d.schedules || [];
-      state.sheetsUrl = d.sheetsUrl || '';
-      state.autoSync = !!d.autoSync;
+      state.autoSync = d.autoSync !== undefined ? !!d.autoSync : true;
       save(); renderAll();
       toast('✅ Data berhasil direstore', 'ok');
     }catch(err){
@@ -925,12 +927,20 @@ function renderAll(){
 (function init(){
   load();
 
-  document.getElementById('sheetsUrl').value = state.sheetsUrl;
-  document.getElementById('autoSync').checked = state.autoSync;
+  // Tampilkan URL permanen di banner
+  document.getElementById('endpointText').textContent = SHEETS_URL;
+
+  // Checkbox auto-sync
+  const cb = document.getElementById('autoSync');
+  cb.checked = state.autoSync;
+  cb.addEventListener('change', () => {
+    state.autoSync = cb.checked;
+    save();
+    toast(state.autoSync ? '🔄 Auto-sync AKTIF' : '⏸️ Auto-sync NONAKTIF', 'ok');
+  });
 
   renderAll();
 
-  // Enter di form input = simpan
   ['inNama','inRuangan'].forEach(id => {
     document.getElementById(id).addEventListener('keydown', e => {
       if(e.key === 'Enter') addSchedule();
