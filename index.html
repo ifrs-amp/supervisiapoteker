@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monitoring Supervisi Apoteker</title>
+<style>
+  :root{
+    --primary:#0f766e;
+    --primary-dark:#0b5a54;
+    --primary-light:#ccfbf1;
+    --bg:#f1f5f9;
+    --card:#ffffff;
+    --text:#0f172a;
+    --muted:#64748b;
+    --border:#e2e8f0;
+    --danger:#dc2626;
+    --warn:#d97706;
+    --ok:#16a34a;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;font-family:'Segoe UI',Roboto,system-ui,-apple-system,sans-serif;
+    background:var(--bg);color:var(--text);font-size:14px;
+  }
+  header{
+    background:linear-gradient(135deg,#0f766e,#0d9488 60%,#14b8a6);
+    color:#fff;padding:22px 26px 18px;
+  }
+  header h1{margin:0 0 4px;font-size:21px;letter-spacing:.3px;}
+  header p{margin:0;opacity:.85;font-size:13px;}
+  .stats{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;}
+  .stat{
+    background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);
+    border-radius:10px;padding:8px 14px;backdrop-filter:blur(4px);min-width:110px;
+  }
+  .stat b{display:block;font-size:19px;line-height:1.2;}
+  .stat span{font-size:11px;opacity:.85;text-transform:uppercase;letter-spacing:.5px;}
+
+  nav.tabs{
+    display:flex;gap:4px;padding:0 20px;background:#fff;border-bottom:1px solid var(--border);
+    overflow-x:auto;position:sticky;top:0;z-index:20;
+  }
+  nav.tabs button{
+    border:none;background:none;padding:14px 18px;font-size:14px;font-weight:600;
+    color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;
+    font-family:inherit;transition:.15s;
+  }
+  nav.tabs button:hover{color:var(--primary);background:#f8fafc;}
+  nav.tabs button.active{color:var(--primary);border-bottom-color:var(--primary);}
+
+  main{padding:20px;max-width:1400px;margin:0 auto;}
+  .view{display:none;animation:fade .2s ease;}
+  .view.active{display:block;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  .card{
+    background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+    padding:20px;margin-bottom:18px;box-shadow:0 1px 3px rgba(15,23,42,.04);
+  }
+  .card h2{margin:0 0 16px;font-size:16px;display:flex;align-items:center;gap:8px;}
+  .card h2 .badge{font-size:11px;background:var(--primary-light);color:var(--primary-dark);
+    padding:3px 9px;border-radius:20px;font-weight:700;}
+
+  .form-grid{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-bottom:16px;
+  }
+  label{display:block;font-size:12px;font-weight:700;color:#334155;margin-bottom:6px;
+    text-transform:uppercase;letter-spacing:.4px;}
+  input,select{
+    width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:9px;
+    font-size:14px;font-family:inherit;background:#fff;color:var(--text);transition:.15s;
+  }
+  input:focus,select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(15,118,110,.13);}
+
+  button.btn{
+    background:var(--primary);color:#fff;border:none;padding:11px 22px;border-radius:9px;
+    font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:.15s;
+  }
+  button.btn:hover{background:var(--primary-dark);transform:translateY(-1px);}
+  button.btn.ghost{background:#fff;color:var(--primary);border:1.5px solid var(--primary);}
+  button.btn.ghost:hover{background:var(--primary-light);}
+  button.btn.danger{background:var(--danger);}
+  button.btn.danger:hover{background:#b91c1c;}
+  button.btn.sm{padding:7px 14px;font-size:12.5px;}
+
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px;}
+  .toolbar > div{flex:1;min-width:150px;}
+
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);}
+  th{background:#f8fafc;font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;
+    color:var(--muted);font-weight:800;position:sticky;top:0;}
+  tbody tr:hover{background:#f8fafc;}
+  .table-wrap{overflow:auto;max-height:520px;border:1px solid var(--border);border-radius:10px;}
+
+  .pill{
+    display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;
+    background:var(--primary-light);color:var(--primary-dark);margin:2px 3px 2px 0;
+  }
+  .pill.minggu{background:#e0e7ff;color:#3730a3;}
+  .pill.empty{background:#f1f5f9;color:#94a3b8;font-weight:600;}
+
+  .rekap-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;}
+  .rekap-card{
+    border:1px solid var(--border);border-radius:12px;padding:15px;background:#fff;transition:.15s;
+  }
+  .rekap-card:hover{box-shadow:0 4px 14px rgba(15,23,42,.08);}
+  .rekap-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+  .rekap-head b{font-size:15px;}
+  .rekap-head .count{font-size:12px;font-weight:800;color:var(--primary);
+    background:var(--primary-light);padding:3px 10px;border-radius:20px;}
+  .progress{height:7px;background:#e2e8f0;border-radius:20px;overflow:hidden;margin-bottom:12px;}
+  .progress i{display:block;height:100%;background:linear-gradient(90deg,#14b8a6,#0f766e);
+    border-radius:20px;transition:width .4s;}
+  .sub{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;
+    color:var(--muted);margin:10px 0 5px;}
+  .chips{line-height:1.9;}
+
+  .matrix td.cell{text-align:center;padding:6px 4px;min-width:74px;}
+  .matrix th.rowhead{
+    position:sticky;left:0;background:#f8fafc;z-index:5;min-width:130px;
+    box-shadow:2px 0 0 var(--border);
+  }
+  .matrix td.rowhead{position:sticky;left:0;background:#fff;font-weight:700;z-index:5;
+    box-shadow:2px 0 0 var(--border);}
+  .matrix tbody tr:hover td.rowhead{background:#f8fafc;}
+  .mini{display:inline-block;background:var(--primary);color:#fff;font-size:10.5px;font-weight:800;
+    border-radius:5px;padding:2px 5px;margin:1px;}
+  .dash{color:#cbd5e1;font-size:16px;}
+
+  .list-item{display:flex;justify-content:space-between;align-items:center;
+    padding:9px 12px;border:1px solid var(--border);border-radius:9px;margin-bottom:7px;background:#fff;}
+  .list-item span{font-weight:600;}
+  .icon-btn{border:none;background:#fee2e2;color:#b91c1c;border-radius:7px;
+    padding:5px 10px;cursor:pointer;font-weight:800;font-size:12px;font-family:inherit;}
+  .icon-btn:hover{background:#fecaca;}
+
+  .toast{
+    position:fixed;bottom:24px;right:24px;background:#0f172a;color:#fff;padding:13px 20px;
+    border-radius:11px;font-weight:600;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,.25);
+    opacity:0;transform:translateY(16px);transition:.25s;pointer-events:none;z-index:999;max-width:340px;
+  }
+  .toast.show{opacity:1;transform:none;}
+  .toast.ok{background:#0f766e;}
+  .toast.err{background:#b91c1c;}
+  .toast.warn{background:#b45309;}
+
+  .modal{position:fixed;inset:0;background:rgba(15,23,42,.6);display:none;
+    align-items:center;justify-content:center;z-index:500;padding:20px;}
+  .modal.show{display:flex;}
+  .modal-box{background:#fff;border-radius:16px;padding:24px;max-width:720px;width:100%;
+    max-height:88vh;overflow:auto;}
+  .modal-box h3{margin:0 0 12px;}
+  pre{background:#0f172a;color:#a5f3fc;padding:16px;border-radius:10px;overflow:auto;
+    font-size:12.5px;line-height:1.6;}
+  .hint{font-size:12.5px;color:var(--muted);line-height:1.7;}
+  .empty-state{text-align:center;padding:40px 20px;color:var(--muted);}
+  .empty-state div{font-size:38px;margin-bottom:10px;}
+  .row-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  @media(max-width:760px){.row-2{grid-template-columns:1fr;}}
+  @media print{
+    nav.tabs,header .stats,.toolbar,.no-print{display:none!important;}
+    body{background:#fff;} .card{box-shadow:none;border:none;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🏥 Monitoring Supervisi Apoteker</h1>
+  <p>Input jadwal → rekap otomatis ruangan yang sudah &amp; belum disupervisi</p>
+  <div class="stats">
+    <div class="stat"><b id="stApoteker">0</b><span>Apoteker</span></div>
+    <div class="stat"><b id="stRuangan">0</b><span>Ruangan</span></div>
+    <div class="stat"><b id="stJadwal">0</b><span>Total Jadwal</span></div>
+    <div class="stat"><b id="stCakupan">0%</b><span>Cakupan</span></div>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button class="active" data-view="input">📝 Input Jadwal</button>
+  <button data-view="rekap">📊 Rekap per Apoteker</button>
+  <button data-view="matriks">🔲 Matriks Cakupan</button>
+  <button data-view="pengaturan">⚙️ Pengaturan &amp; Data</button>
+</nav>
+
+<main>
+
+  <!-- ================= INPUT ================= -->
+  <section id="view-input" class="view active">
+    <div class="card">
+      <h2>Input Jadwal Supervisi <span class="badge">Admin</span></h2>
+      <div class="form-grid">
+        <div>
+          <label>Nama Apoteker</label>
+          <input id="inNama" list="dlApoteker" placeholder="Ketik atau pilih nama...">
+          <datalist id="dlApoteker"></datalist>
+        </div>
+        <div>
+          <label>Minggu</label>
+          <select id="inMinggu">
+            <option>Minggu 1</option><option>Minggu 2</option>
+            <option>Minggu 3</option><option>Minggu 4</option><option>Minggu 5</option>
+          </select>
+        </div>
+        <div>
+          <label>Ruangan</label>
+          <input id="inRuangan" list="dlRuangan" placeholder="Ketik atau pilih ruangan...">
+          <datalist id="dlRuangan"></datalist>
+        </div>
+        <div>
+          <label>Tanggal (opsional)</label>
+          <input type="date" id="inTanggal">
+        </div>
+      </div>
+      <button class="btn" onclick="addSchedule()">💾 Simpan Jadwal</button>
+      <button class="btn ghost" onclick="clearForm()">Bersihkan</button>
+    </div>
+
+    <div class="card">
+      <h2>Riwayat Jadwal <span class="badge" id="badgeRiwayat">0</span></h2>
+      <div class="toolbar">
+        <div>
+          <label>Cari</label>
+          <input id="filterCari" placeholder="Cari nama / ruangan..." oninput="renderRiwayat()">
+        </div>
+        <div>
+          <label>Filter Minggu</label>
+          <select id="filterMinggu" onchange="renderRiwayat()">
+            <option value="">Semua Minggu</option>
+            <option>Minggu 1</option><option>Minggu 2</option>
+            <option>Minggu 3</option><option>Minggu 4</option><option>Minggu 5</option>
+          </select>
+        </div>
+        <div>
+          <label>Filter Apoteker</label>
+          <select id="filterNama" onchange="renderRiwayat()"><option value="">Semua Apoteker</option></select>
+        </div>
+        <button class="btn ghost sm" onclick="exportCSV()">⬇️ Export CSV</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>#</th><th>Nama Apoteker</th><th>Minggu</th><th>Ruangan</th><th>Tanggal</th><th>Diinput</th><th></th></tr>
+          </thead>
+          <tbody id="tblRiwayat"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= REKAP ================= -->
+  <section id="view-rekap" class="view">
+    <div class="card">
+      <h2>Rekap Cakupan per Apoteker</h2>
+      <div class="toolbar">
+        <div>
+          <label>Cari Apoteker</label>
+          <input id="rekapCari" placeholder="Cari nama..." oninput="renderRekap()">
+        </div>
+        <div>
+          <label>Filter Minggu</label>
+          <select id="rekapMinggu" onchange="renderRekap()">
+            <option value="">Semua Minggu</option>
+            <option>Minggu 1</option><option>Minggu 2</option>
+            <option>Minggu 3</option><option>Minggu 4</option><option>Minggu 5</option>
+          </select>
+        </div>
+        <div>
+          <label>Tampilkan</label>
+          <select id="rekapMode" onchange="renderRekap()">
+            <option value="all">Semua Apoteker</option>
+            <option value="belum">Hanya yang belum lengkap</option>
+          </select>
+        </div>
+        <button class="btn ghost sm" onclick="window.print()">🖨️ Cetak</button>
+      </div>
+      <div id="rekapList" class="rekap-grid"></div>
+    </div>
+  </section>
+
+  <!-- ================= MATRIKS ================= -->
+  <section id="view-matriks" class="view">
+    <div class="card">
+      <h2>Matriks Cakupan Ruangan</h2>
+      <p class="hint">Angka pada sel menunjukkan <b>minggu ke-berapa</b> apoteker tersebut bertugas di ruangan itu. Tanda <span class="dash">–</span> berarti belum pernah.</p>
+      <div class="table-wrap">
+        <table class="matrix">
+          <thead id="matrixHead"></thead>
+          <tbody id="matrixBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PENGATURAN ================= -->
+  <section id="view-pengaturan" class="view">
+    <div class="card">
+      <h2>🔗 Sinkronisasi Google Sheets</h2>
+      <div class="form-grid">
+        <div style="grid-column:1/-1">
+          <label>URL Web App Google Apps Script</label>
+          <input id="sheetsUrl" placeholder="https://script.google.com/macros/s/AKfycb.../exec">
+        </div>
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;text-transform:none;font-size:13px;">
+        <input type="checkbox" id="autoSync" style="width:auto"> Otomatis kirim ke Google Sheets setiap kali menyimpan jadwal
+      </label>
+      <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn" onclick="saveSheetsUrl()">💾 Simpan URL</button>
+        <button class="btn ghost" onclick="syncAll()">☁️ Kirim Semua Data Sekarang</button>
+        <button class="btn ghost" onclick="openModal()">📖 Cara Setup</button>
+      </div>
+    </div>
+
+    <div class="row-2">
+      <div class="card">
+        <h2>👥 Daftar Apoteker <span class="badge" id="badgeApoteker">0</span></h2>
+        <div style="display:flex;gap:8px;margin-bottom:12px;">
+          <input id="newApoteker" placeholder="Tambah nama apoteker baru...">
+          <button class="btn sm" onclick="addApoteker()">Tambah</button>
+        </div>
+        <div id="listApoteker" style="max-height:380px;overflow:auto;"></div>
+      </div>
+
+      <div class="card">
+        <h2>🚪 Daftar Ruangan <span class="badge" id="badgeRuangan">0</span></h2>
+        <div style="display:flex;gap:8px;margin-bottom:12px;">
+          <input id="newRuangan" placeholder="Tambah nama ruangan baru...">
+          <button class="btn sm" onclick="addRuangan()">Tambah</button>
+        </div>
+        <div id="listRuangan" style="max-height:380px;overflow:auto;"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>💾 Backup &amp; Reset</h2>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn ghost" onclick="exportJSON()">⬇️ Backup Data (JSON)</button>
+        <button class="btn ghost" onclick="document.getElementById('importFile').click()">⬆️ Restore Data</button>
+        <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
+        <button class="btn danger" onclick="resetAll()">🗑️ Reset Semua Data</button>
+      </div>
+      <p class="hint" style="margin-top:12px;">Data tersimpan otomatis di browser (localStorage). Untuk riwayat permanen, aktifkan sinkronisasi Google Sheets di atas.</p>
+    </div>
+  </section>
+
+</main>
+
+<!-- MODAL CARA SETUP -->
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <h3>📖 Cara Menghubungkan ke Google Sheets</h3>
+    <ol class="hint" style="padding-left:18px;">
+      <li>Buka <b>Google Sheets</b> → buat spreadsheet baru, beri nama misal <i>"Riwayat Supervisi Apoteker"</i>.</li>
+      <li>Menu <b>Extensions → Apps Script</b>.</li>
+      <li>Hapus kode yang ada, lalu <b>paste kode di bawah</b> ini.</li>
+      <li>Klik <b>Deploy → New deployment → Web app</b>.</li>
+      <li>Set <b>Execute as: Me</b> dan <b>Who has access: Anyone</b>. Klik Deploy &amp; izinkan akses.</li>
+      <li>Copy <b>Web app URL</b> (berakhiran <code>/exec</code>), paste ke kolom URL di halaman Pengaturan, lalu klik <b>Simpan URL</b>.</li>
+    </ol>
+    <pre id="scriptCode">function doPost(e) {
+  const SHEET_NAME = 'Riwayat';
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sh = ss.getSheetByName(SHEET_NAME);
+  if (!sh) sh = ss.insertSheet(SHEET_NAME);
+
+  const data = JSON.parse(e.postData.contents);
+
+  if (data.action === 'syncAll') {
+    sh.clear();
+    sh.appendRow(['No','Nama Apoteker','Minggu','Ruangan','Tanggal','Waktu Input']);
+    data.rows.forEach(function(r, i){
+      sh.appendRow([i+1, r.nama, r.minggu, r.ruangan, r.tanggal || '-', r.createdAt]);
+    });
+  } else {
+    if (sh.getLastRow() === 0) {
+      sh.appendRow(['No','Nama Apoteker','Minggu','Ruangan','Tanggal','Waktu Input']);
+    }
+    sh.appendRow([sh.getLastRow(), data.nama, data.minggu, data.ruangan, data.tanggal || '-', data.createdAt]);
+  }
+
+  sh.setColumnWidth(2, 180);
+  sh.setColumnWidth(4, 180);
+
+  return ContentService
+    .createTextOutput(JSON.stringify({status:'ok'}))
+    .setMimeType(ContentService.MimeType.JSON);
+}</pre>
+    <div style="margin-top:16px;text-align:right;">
+      <button class="btn" onclick="closeModal()">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   KONFIGURASI AWAL
+========================================================= */
+const STORAGE_KEY = 'supervisiApoteker_v1';
+
+const DEFAULT_APOTEKERS = [
+  'Anton','Budi','Citra','Dewi','Eka','Fajar','Gita','Hadi','Indah','Joko',
+  'Kartika','Lukman','Maya','Nur','Oscar','Putri','Rina','Siti','Tono','Umar'
+];
+
+const DEFAULT_ROOMS = [
+  'Enggang VIP','Enggang 2','Enggang 3','Merpati 1','Merpati 2','Merpati 3',
+  'Kenari 1','Kenari 2','Cendrawasih','Kasuari','Rajawali','Elang','Parkit',
+  'Beo','Nuri','Jalak','Murai','Kutilang','Puyuh','Tekukur','Dara','Kepodang'
+];
+
+let state = {
+  apotekers: [],
+  rooms: [],
+  schedules: [],
+  sheetsUrl: '',
+  autoSync: false
+};
+
+/* =========================================================
+   UTILITAS
+========================================================= */
+function esc(s){
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => (
+    {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]
+  ));
+}
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+function toast(msg, type='ok'){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show ' + type;
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.className = 'toast ' + type, 2600);
+}
+
+function nowStr(){
+  const d = new Date();
+  const p = n => String(n).padStart(2,'0');
+  return `${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+/* =========================================================
+   PENYIMPANAN
+========================================================= */
+function save(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+function load(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const d = JSON.parse(raw);
+      state.apotekers = d.apotekers || [];
+      state.rooms = d.rooms || [];
+      state.schedules = d.schedules || [];
+      state.sheetsUrl = d.sheetsUrl || '';
+      state.autoSync = !!d.autoSync;
+    }
+  }catch(e){ console.warn('Gagal memuat data', e); }
+
+  if(!state.apotekers.length) state.apotekers = [...DEFAULT_APOTEKERS];
+  if(!state.rooms.length) state.rooms = [...DEFAULT_ROOMS];
+}
+
+/* =========================================================
+   NAVIGASI TAB
+========================================================= */
+document.querySelectorAll('nav.tabs button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('nav.tabs button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('view-' + btn.dataset.view).classList.add('active');
+    if(btn.dataset.view === 'rekap') renderRekap();
+    if(btn.dataset.view === 'matriks') renderMatriks();
+  });
+});
+
+/* =========================================================
+   RENDER DASAR (datalist, statistik)
+========================================================= */
+function renderMaster(){
+  // datalist
+  document.getElementById('dlApoteker').innerHTML =
+    state.apotekers.map(a => `<option value="${esc(a)}">`).join('');
+  document.getElementById('dlRuangan').innerHTML =
+    state.rooms.map(r => `<option value="${esc(r)}">`).join('');
+
+  // filter nama
+  const sel = document.getElementById('filterNama');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Semua Apoteker</option>' +
+    state.apotekers.map(a => `<option value="${esc(a)}">${esc(a)}</option>`).join('');
+  sel.value = cur;
+
+  // daftar kelola
+  document.getElementById('badgeApoteker').textContent = state.apotekers.length;
+  document.getElementById('badgeRuangan').textContent = state.rooms.length;
+
+  document.getElementById('listApoteker').innerHTML = state.apotekers.length
+    ? state.apotekers.map((a,i) => `
+        <div class="list-item">
+          <span>${i+1}. ${esc(a)}</span>
+          <button class="icon-btn" onclick="delApoteker('${esc(a).replace(/'/g,"\\'")}')">Hapus</button>
+        </div>`).join('')
+    : '<div class="empty-state">Belum ada apoteker</div>';
+
+  document.getElementById('listRuangan').innerHTML = state.rooms.length
+    ? state.rooms.map((r,i) => `
+        <div class="list-item">
+          <span>${i+1}. ${esc(r)}</span>
+          <button class="icon-btn" onclick="delRuangan('${esc(r).replace(/'/g,"\\'")}')">Hapus</button>
+        </div>`).join('')
+    : '<div class="empty-state">Belum ada ruangan</div>';
+}
+
+function renderStats(){
+  const totalSlot = state.apotekers.length * state.rooms.length;
+  const filled = state.schedules.length;
+  const pct = totalSlot ? Math.round((filled / totalSlot) * 100) : 0;
+
+  document.getElementById('stApoteker').textContent = state.apotekers.length;
+  document.getElementById('stRuangan').textContent = state.rooms.length;
+  document.getElementById('stJadwal').textContent = filled;
+  document.getElementById('stCakupan').textContent = pct + '%';
+  document.getElementById('badgeRiwayat').textContent = filled;
+}
+
+/* =========================================================
+   INPUT JADWAL
+========================================================= */
+function clearForm(){
+  document.getElementById('inNama').value = '';
+  document.getElementById('inRuangan').value = '';
+  document.getElementById('inTanggal').value = '';
+  document.getElementById('inNama').focus();
+}
+
+async function addSchedule(){
+  const nama = document.getElementById('inNama').value.trim();
+  const minggu = document.getElementById('inMinggu').value;
+  const ruangan = document.getElementById('inRuangan').value.trim();
+  const tanggal = document.getElementById('inTanggal').value;
+
+  if(!nama){ toast('Nama apoteker wajib diisi!', 'err'); return; }
+  if(!ruangan){ toast('Ruangan wajib diisi!', 'err'); return; }
+
+  // cek duplikat persis
+  const dup = state.schedules.find(s =>
+    s.nama.toLowerCase() === nama.toLowerCase() &&
+    s.minggu === minggu &&
+    s.ruangan.toLowerCase() === ruangan.toLowerCase()
+  );
+  if(dup){
+    toast(`${nama} sudah terjadwal di ${ruangan} pada ${minggu}.`, 'warn');
+    return;
+  }
+
+  // cek bentrok: nama sama, minggu sama, ruangan beda
+  const bentrok = state.schedules.find(s =>
+    s.nama.toLowerCase() === nama.toLowerCase() && s.minggu === minggu
+  );
+  if(bentrok){
+    const lanjut = confirm(
+      `⚠️ PERINGATAN BENTROK\n\n${nama} sudah punya jadwal di "${bentrok.ruangan}" pada ${minggu}.\n\nTetap simpan jadwal di "${ruangan}"?`
+    );
+    if(!lanjut) return;
+  }
+
+  // auto-tambah ke master jika nama/ruangan baru
+  if(!state.apotekers.some(a => a.toLowerCase() === nama.toLowerCase())){
+    state.apotekers.push(nama);
+    state.apotekers.sort((a,b)=>a.localeCompare(b,'id'));
+  }
+  if(!state.rooms.some(r => r.toLowerCase() === ruangan.toLowerCase())){
+    state.rooms.push(ruangan);
+  }
+
+  const record = {
+    id: uid(),
+    nama: nama,
+    minggu: minggu,
+    ruangan: ruangan,
+    tanggal: tanggal,
+    createdAt: nowStr()
+  };
+
+  state.schedules.push(record);
+  save();
+  renderAll();
+
+  clearForm();
+
+  if(state.autoSync && state.sheetsUrl){
+    const ok = await sendToSheets(record);
+    toast(ok ? `✅ Tersimpan & terkirim ke Sheets: ${nama} → ${ruangan}` : `✅ Tersimpan lokal (gagal kirim ke Sheets)`,
+          ok ? 'ok' : 'warn');
+  } else {
+    toast(`✅ Tersimpan: ${nama} → ${ruangan} (${minggu})`, 'ok');
+  }
+}
+
+function deleteSchedule(id){
+  const s = state.schedules.find(x => x.id === id);
+  if(!s) return;
+  if(!confirm(`Hapus jadwal "${s.nama}" di "${s.ruangan}" (${s.minggu})?`)) return;
+  state.schedules = state.schedules.filter(x => x.id !== id);
+  save(); renderAll();
+  toast('🗑️ Jadwal dihapus', 'ok');
+}
+
+/* =========================================================
+   RENDER RIWAYAT
+========================================================= */
+function renderRiwayat(){
+  const cari = document.getElementById('filterCari').value.toLowerCase();
+  const fMinggu = document.getElementById('filterMinggu').value;
+  const fNama = document.getElementById('filterNama').value;
+
+  let rows = [...state.schedules].reverse();
+  if(fMinggu) rows = rows.filter(r => r.minggu === fMinggu);
+  if(fNama) rows = rows.filter(r => r.nama === fNama);
+  if(cari) rows = rows.filter(r =>
+    r.nama.toLowerCase().includes(cari) || r.ruangan.toLowerCase().includes(cari)
+  );
+
+  const tbody = document.getElementById('tblRiwayat');
+  if(!rows.length){
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div>📋</div>Belum ada data jadwal</div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = rows.map((r, i) => `
+    <tr>
+      <td>${i+1}</td>
+      <td><b>${esc(r.nama)}</b></td>
+      <td><span class="pill minggu">${esc(r.minggu)}</span></td>
+      <td><span class="pill">${esc(r.ruangan)}</span></td>
+      <td>${r.tanggal ? esc(formatTanggal(r.tanggal)) : '-'}</td>
+      <td style="color:#94a3b8;font-size:12px;">${esc(r.createdAt)}</td>
+      <td><button class="icon-btn" onclick="deleteSchedule('${r.id}')">Hapus</button></td>
+    </tr>
+  `).join('');
+}
+
+function formatTanggal(iso){
+  if(!iso) return '-';
+  const [y,m,d] = iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+/* =========================================================
+   REKAP PER APOTEKER
+========================================================= */
+function renderRekap(){
+  const cari = document.getElementById('rekapCari').value.toLowerCase();
+  const fMinggu = document.getElementById('rekapMinggu').value;
+  const mode = document.getElementById('rekapMode').value;
+
+  const list = state.apotekers.filter(a => a.toLowerCase().includes(cari));
+
+  const html = list.map(nama => {
+    let sched = state.schedules.filter(s => s.nama === nama);
+    if(fMinggu) sched = sched.filter(s => s.minggu === fMinggu);
+
+    // ruangan unik yang sudah disupervisi
+    const sudahMap = {};
+    sched.forEach(s => {
+      if(!sudahMap[s.ruangan]) sudahMap[s.ruangan] = [];
+      sudahMap[s.ruangan].push(s.minggu.replace('Minggu ','M'));
+    });
+
+    const sudah = Object.keys(sudahMap);
+    const belum = state.rooms.filter(r => !sudah.includes(r));
+    const pct = state.rooms.length ? Math.round((sudah.length / state.rooms.length) * 100) : 0;
+
+    if(mode === 'belum' && belum.length === 0) return '';
+
+    return `
+      <div class="rekap-card">
+        <div class="rekap-head">
+          <b>${esc(nama)}</b>
+          <span class="count">${sudah.length}/${state.rooms.length} ruangan</span>
+        </div>
+        <div class="progress"><i style="width:${pct}%"></i></div>
+
+        <div class="sub">✅ Sudah disupervisi (${sudah.length})</div>
+        <div class="chips">
+          ${sudah.length
+            ? sudah.map(r => `<span class="pill">${esc(r)} <small style="opacity:.7">(${sudahMap[r].join(',')})</small></span>`).join('')
+            : '<span class="pill empty">Belum ada</span>'}
+        </div>
+
+        <div class="sub">⏳ Belum disupervisi (${belum.length})</div>
+        <div class="chips">
+          ${belum.length
+            ? belum.map(r => `<span class="pill empty">${esc(r)}</span>`).join('')
+            : '<span class="pill" style="background:#dcfce7;color:#15803d;">🎉 Semua ruangan sudah lengkap!</span>'}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('rekapList').innerHTML = html ||
+    `<div class="empty-state" style="grid-column:1/-1;"><div>🔍</div>Tidak ada data yang cocok</div>`;
+}
+
+/* =========================================================
+   MATRIKS
+========================================================= */
+function renderMatriks(){
+  const head = document.getElementById('matrixHead');
+  const body = document.getElementById('matrixBody');
+
+  if(!state.apotekers.length || !state.rooms.length){
+    head.innerHTML = ''; body.innerHTML = '';
+    return;
+  }
+
+  head.innerHTML = `<tr>
+    <th class="rowhead">Apoteker \\ Ruangan</th>
+    ${state.rooms.map(r => `<th style="text-align:center;writing-mode:vertical-rl;transform:rotate(180deg);height:130px;font-size:11px;">${esc(r)}</th>`).join('')}
+  </tr>`;
+
+  body.innerHTML = state.apotekers.map(nama => {
+    const sched = state.schedules.filter(s => s.nama === nama);
+    const cells = state.rooms.map(ruangan => {
+      const weeks = sched.filter(s => s.ruangan === ruangan)
+                         .map(s => s.minggu.replace('Minggu ',''))
+                         .sort();
+      if(!weeks.length) return `<td class="cell"><span class="dash">–</span></td>`;
+      return `<td class="cell">${weeks.map(w => `<span class="mini">M${w}</span>`).join('')}</td>`;
+    }).join('');
+    return `<tr><td class="rowhead">${esc(nama)}</td>${cells}</tr>`;
+  }).join('');
+}
+
+/* =========================================================
+   KELOLA MASTER
+========================================================= */
+function addApoteker(){
+  const inp = document.getElementById('newApoteker');
+  const v = inp.value.trim();
+  if(!v){ toast('Nama tidak boleh kosong', 'err'); return; }
+  if(state.apotekers.some(a => a.toLowerCase() === v.toLowerCase())){
+    toast('Nama sudah ada', 'warn'); return;
+  }
+  state.apotekers.push(v);
+  state.apotekers.sort((a,b)=>a.localeCompare(b,'id'));
+  inp.value = '';
+  save(); renderAll();
+  toast(`✅ Apoteker "${v}" ditambahkan`, 'ok');
+}
+
+function delApoteker(nama){
+  const jml = state.schedules.filter(s => s.nama === nama).length;
+  const msg = jml
+    ? `Hapus "${nama}" dari daftar? (${jml} jadwal miliknya tetap tersimpan di riwayat)`
+    : `Hapus "${nama}" dari daftar?`;
+  if(!confirm(msg)) return;
+  state.apotekers = state.apotekers.filter(a => a !== nama);
+  save(); renderAll();
+  toast('Dihapus', 'ok');
+}
+
+function addRuangan(){
+  const inp = document.getElementById('newRuangan');
+  const v = inp.value.trim();
+  if(!v){ toast('Nama ruangan tidak boleh kosong', 'err'); return; }
+  if(state.rooms.some(r => r.toLowerCase() === v.toLowerCase())){
+    toast('Ruangan sudah ada', 'warn'); return;
+  }
+  state.rooms.push(v);
+  inp.value = '';
+  save(); renderAll();
+  toast(`✅ Ruangan "${v}" ditambahkan`, 'ok');
+}
+
+function delRuangan(nama){
+  if(!confirm(`Hapus ruangan "${nama}" dari daftar?`)) return;
+  state.rooms = state.rooms.filter(r => r !== nama);
+  save(); renderAll();
+  toast('Dihapus', 'ok');
+}
+
+/* =========================================================
+   GOOGLE SHEETS
+========================================================= */
+function saveSheetsUrl(){
+  const url = document.getElementById('sheetsUrl').value.trim();
+  state.sheetsUrl = url;
+  state.autoSync = document.getElementById('autoSync').checked;
+  save();
+  toast(url ? '✅ URL tersimpan. Auto-sync: ' + (state.autoSync ? 'AKTIF' : 'NONAKTIF')
+            : 'URL dikosongkan', 'ok');
+}
+
+async function sendToSheets(record){
+  if(!state.sheetsUrl) return false;
+  try{
+    await fetch(state.sheetsUrl, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify(record)
+    });
+    return true;
+  }catch(e){
+    console.error(e);
+    return false;
+  }
+}
+
+async function syncAll(){
+  if(!state.sheetsUrl){ toast('Isi URL Google Apps Script dulu!', 'err'); return; }
+  if(!state.schedules.length){ toast('Belum ada data untuk dikirim', 'warn'); return; }
+  if(!confirm(`Kirim ${state.schedules.length} data jadwal ke Google Sheets? (data lama di sheet akan ditimpa)`)) return;
+
+  toast('⏳ Mengirim data...', 'warn');
+  try{
+    await fetch(state.sheetsUrl, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({action:'syncAll', rows: state.schedules})
+    });
+    toast('✅ Data terkirim ke Google Sheets', 'ok');
+  }catch(e){
+    toast('❌ Gagal mengirim. Cek URL & akses.', 'err');
+  }
+}
+
+/* =========================================================
+   EXPORT / IMPORT
+========================================================= */
+function exportCSV(){
+  if(!state.schedules.length){ toast('Belum ada data', 'warn'); return; }
+  const header = ['No','Nama Apoteker','Minggu','Ruangan','Tanggal','Waktu Input'];
+  const rows = state.schedules.map((s,i) => [
+    i+1, s.nama, s.minggu, s.ruangan, s.tanggal ? formatTanggal(s.tanggal) : '-', s.createdAt
+  ]);
+  const csv = [header, ...rows]
+    .map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(','))
+    .join('\n');
+
+  downloadFile('\uFEFF' + csv, `riwayat-supervisi-${Date.now()}.csv`, 'text/csv;charset=utf-8');
+  toast('⬇️ CSV diunduh', 'ok');
+}
+
+function exportJSON(){
+  downloadFile(JSON.stringify(state, null, 2), `backup-supervisi-${Date.now()}.json`, 'application/json');
+  toast('⬇️ Backup diunduh', 'ok');
+}
+
+function importJSON(ev){
+  const file = ev.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try{
+      const d = JSON.parse(e.target.result);
+      if(!confirm('Restore data akan menimpa data saat ini. Lanjutkan?')) return;
+      state.apotekers = d.apotekers || state.apotekers;
+      state.rooms = d.rooms || state.rooms;
+      state.schedules = d.schedules || [];
+      state.sheetsUrl = d.sheetsUrl || '';
+      state.autoSync = !!d.autoSync;
+      save(); renderAll();
+      toast('✅ Data berhasil direstore', 'ok');
+    }catch(err){
+      toast('❌ File tidak valid', 'err');
+    }
+  };
+  reader.readAsText(file);
+  ev.target.value = '';
+}
+
+function downloadFile(content, filename, type){
+  const blob = new Blob([content], {type});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function resetAll(){
+  if(!confirm('⚠️ SEMUA data jadwal akan dihapus permanen. Yakin?')) return;
+  if(!confirm('Konfirmasi terakhir: hapus semua jadwal?')) return;
+  state.schedules = [];
+  save(); renderAll();
+  toast('🗑️ Semua jadwal dihapus', 'ok');
+}
+
+/* =========================================================
+   MODAL
+========================================================= */
+function openModal(){ document.getElementById('modal').classList.add('show'); }
+function closeModal(){ document.getElementById('modal').classList.remove('show'); }
+document.getElementById('modal').addEventListener('click', e => {
+  if(e.target.id === 'modal') closeModal();
+});
+
+/* =========================================================
+   RENDER SEMUA
+========================================================= */
+function renderAll(){
+  renderMaster();
+  renderStats();
+  renderRiwayat();
+  renderRekap();
+  renderMatriks();
+}
+
+/* =========================================================
+   INISIALISASI
+========================================================= */
+(function init(){
+  load();
+
+  document.getElementById('sheetsUrl').value = state.sheetsUrl;
+  document.getElementById('autoSync').checked = state.autoSync;
+
+  renderAll();
+
+  // Enter di form input = simpan
+  ['inNama','inRuangan'].forEach(id => {
+    document.getElementById(id).addEventListener('keydown', e => {
+      if(e.key === 'Enter') addSchedule();
+    });
+  });
+  document.getElementById('newApoteker').addEventListener('keydown', e => {
+    if(e.key === 'Enter') addApoteker();
+  });
+  document.getElementById('newRuangan').addEventListener('keydown', e => {
+    if(e.key === 'Enter') addRuangan();
+  });
+})();
+</script>
+</body>
+</html>
